@@ -9,7 +9,7 @@ export default function WavePuzzle() {
   const [wave3, setWave3] = useState(50);
   const [currentTarget, setCurrentTarget] = useState(0);
   const [isCleared, setIsCleared] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(300); // 300秒から減算
+  const [timeLeft, setTimeLeft] = useState(300); 
 
   const targets = [
     [30, 50, 70],
