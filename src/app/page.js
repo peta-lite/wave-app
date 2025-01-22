@@ -1,101 +1,129 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
+import { useState, useEffect, useRef } from 'react';
+
+export default function WavePuzzle() {
+  const canvasRef = useRef(null);
+  const [wave1, setWave1] = useState(50);
+  const [wave2, setWave2] = useState(50);
+  const [wave3, setWave3] = useState(50);
+  const [currentTarget, setCurrentTarget] = useState(0);
+  const [isCleared, setIsCleared] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(300); // 300秒から減算
+
+  const targets = [
+    [30, 50, 70],
+    [60, 40, 20],
+    [90, 10, 50],
+  ];
+
+  const targetAmplitudes = targets[currentTarget];
+
+  const drawWave = (ctx, amplitudes, color) => {
+    ctx.beginPath();
+    for (let x = 0; x <= 600; x++) {
+      const t = (x / 600) * 2 * Math.PI;
+      const y = amplitudes.reduce(
+        (sum, amp, i) => sum + amp * Math.sin((i + 1) * t),
+        0
+      ) / 3;
+      ctx.lineTo(x, 100 - y);
+    }
+    ctx.strokeStyle = color;
+    ctx.stroke();
+  };
+
+  useEffect(() => {
+    if (canvasRef.current) {
+      const canvas = canvasRef.current;
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, 600, 200);
+      drawWave(ctx, targetAmplitudes, 'red');
+      drawWave(ctx, [wave1, wave2, wave3], 'blue');
+    }
+  }, [wave1, wave2, wave3, targetAmplitudes]);
+
+  useEffect(() => {
+    if (timeLeft > 0 && !isCleared) {
+      const timer = setInterval(() => {
+        setTimeLeft((prev) => prev - 1);
+      }, 1000);
+      return () => clearInterval(timer);
+    }
+  }, [timeLeft, isCleared]);
+
+  const checkMatch = () => {
+    const isMatch = targetAmplitudes.every(
+      (target, i) => Math.abs(target - [wave1, wave2, wave3][i]) < 5
+    );
+    if (isMatch) {
+      if (currentTarget + 1 < targets.length) {
+        setCurrentTarget(currentTarget + 1);
+      } else {
+        setIsCleared(true);
+      }
+    } else {
+      alert('Not quite right. Try again!');
+    }
+  };
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.js
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-800 text-white">
+      <h1 className="text-4xl font-bold mb-6 text-center text-yellow-300 drop-shadow-lg">
+        Wave Synthesis Puzzle
+      </h1>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+      {isCleared ? (
+        <div>
+          <h2 className="text-3xl font-bold mb-4">You cleared all levels! 🎉</h2>
+          <p className="text-xl">Final Score: {timeLeft}</p>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      ) : (
+        <>
+          <div className="text-lg font-bold text-yellow-400 mb-4">
+            Time Left: {300 - timeLeft}s
+          </div>
+          <canvas
+            ref={canvasRef}
+            width="600"
+            height="200"
+            className="border-4 border-red-500 bg-gray-700 rounded-lg shadow-md mb-4"
+          ></canvas>
+
+          <div className="w-full max-w-md space-y-4">
+            {[wave1, wave2, wave3].map((wave, index) => (
+              <div key={index}>
+                <label
+                  htmlFor={`wave${index + 1}`}
+                  className="block mb-2"
+                >{`Wave ${index + 1} Amplitude`}</label>
+                <input
+                  id={`wave${index + 1}`}
+                  type="range"
+                  min="0"
+                  max="100"
+                  step="10"
+                  value={wave}
+                  onChange={(e) =>
+                    [setWave1, setWave2, setWave3][index](
+                      Number(e.target.value)
+                    )
+                  }
+                  className="w-full"
+                />
+                <p className="text-center mt-1">{wave}</p>
+              </div>
+            ))}
+          </div>
+
+          <button
+            onClick={checkMatch}
+            className="mt-6 px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg shadow-lg transform hover:scale-105 transition-transform"
+          >
+            Check Match
+          </button>
+        </>
+      )}
     </div>
   );
 }
